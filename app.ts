@@ -1,8 +1,9 @@
-import express from 'express';
-import cors from 'cors';
-import connectionToDB from './connection-to-db';
-import router from './Routes/users-route';
-import dotenv from 'dotenv';
+import express from "express";
+import cors from "cors";
+import connectionToDB from "./connection-to-db";
+import router from "./Routes/users-route";
+import chatRouter from "./Routes/chats-route";
+import dotenv from "dotenv";
 dotenv.config();
 
 const startServer = () => {
@@ -14,7 +15,7 @@ const startServer = () => {
 
   connectionToDB()
     .then(() => {
-      console.log('Connected to database');
+      console.log("Connected to database");
 
       // app.on("error", (err: any) => {
       // 	console.log(`Error Connecting to http://localhost:${process.env.PORT}`);
@@ -29,8 +30,9 @@ const startServer = () => {
       console.log(err.message);
     });
 
-  app.use('/api', router);
-  app.use('/uploads', express.static(__dirname + '/uploads'));
+  app.use("/api", router);
+  app.use("/api/chats", chatRouter);
+  app.use("/uploads", express.static(__dirname + "/uploads"));
 };
 
 startServer();

@@ -46,6 +46,7 @@ var getChats = function (req, res) { return __awaiter(void 0, void 0, void 0, fu
             case 0:
                 users = req.params.users;
                 users = JSON.parse(users);
+                console.log("users", users);
                 return [4 /*yield*/, chatModel_1.ChatModel.findOne({
                         users: users,
                     }).populate("messages")];
@@ -62,21 +63,24 @@ var addChat = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                console.log(req.body);
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 4, , 5]);
                 _a = req.body, users = _a.users, msg = _a.msg, sentBy = _a.sentBy;
                 return [4 /*yield*/, messageModel_1.MessageModel.create({ content: msg, sentBy: sentBy })];
-            case 1:
+            case 2:
                 msgResponse = _b.sent();
                 return [4 /*yield*/, chatModel_1.ChatModel.findOneAndUpdate({ users: users }, { $push: { messages: msgResponse._id } }, { new: true, upsert: true })];
-            case 2:
+            case 3:
                 doc = _b.sent();
                 res.status(201).send(doc);
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 err_1 = _b.sent();
                 console.log(err_1);
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

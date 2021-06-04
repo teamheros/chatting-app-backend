@@ -7,4 +7,4 @@ chatRouter.get("/:users", getChats);
 
 chatRouter.post("/", addChat);
 
-export { chatRouter };
+export default chatRouter;

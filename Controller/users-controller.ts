@@ -75,7 +75,7 @@ const getAll = async (req: any, res: any) => {
 const signup = async (req: any, res: any) => {
   try {
     const val = req.body;
-    console.log('File NAme ---- > ', req.body);
+    // console.log('File NAme ---- > ', req.body);
     // console.log('File NAme ---- > ', req.file);
 
     // res.status(200).json({
@@ -144,7 +144,11 @@ const login = async (req: any, res: any, next: any) => {
 
 const isAuthorize = async (req: any, res: any, next: any) => {
   try {
-    console.log(req.headers);
+    console.log("++++++++++++++++++++++++++++++++++++++++++++")
+    console.log("headers : " , req.headers);
+    console.log("body : " , req.body);
+
+    console.log("++++++++++++++++++++++++++++++++++++++++++++")
     if (req.headers && req.headers.authorization) {
       const token = req.headers.authorization.split(' ')[1];
       console.log('Token', token);

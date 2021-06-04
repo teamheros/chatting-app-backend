@@ -130,7 +130,6 @@ var signup = function (req, res) { return __awaiter(void 0, void 0, void 0, func
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 val = req.body;
-                console.log('File NAme ---- > ', req.body);
                 return [4 /*yield*/, users_schema_1.default.create(__assign(__assign({}, req.body), { profileImage: POSTS_PATH + '/' + req.file.name }))];
             case 1:
                 newUser = _a.sent();
@@ -217,7 +216,10 @@ var isAuthorize = function (req, res, next) { return __awaiter(void 0, void 0, v
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 3, , 4]);
-                console.log(req.headers);
+                console.log("++++++++++++++++++++++++++++++++++++++++++++");
+                console.log("headers : ", req.headers);
+                console.log("body : ", req.body);
+                console.log("++++++++++++++++++++++++++++++++++++++++++++");
                 if (!(req.headers && req.headers.authorization)) return [3 /*break*/, 2];
                 token = req.headers.authorization.split(' ')[1];
                 console.log('Token', token);
