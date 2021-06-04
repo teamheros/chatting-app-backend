@@ -44,20 +44,20 @@ var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var UsersSchema = new mongoose_1.default.Schema({
     firstName: {
         type: String,
-        // required: true,
+        required: true,
     },
     lastName: {
         type: String,
-        // required: true,
+        required: true,
     },
     email: {
         type: String,
-        // required: true,
-        // unique: true,
+        required: true,
+        unique: true,
     },
     phoneNumber: {
         type: String,
-        // required: true,
+        required: true,
     },
     gender: {
         type: String,
@@ -70,20 +70,20 @@ var UsersSchema = new mongoose_1.default.Schema({
     },
     password: {
         type: String,
-        // required: true,
+        required: true,
     },
     role: {
         type: String,
     },
     passwordConfirm: {
         type: String,
-        // required: [true, 'Please confirm your password'],
-        // validate: {
-        //   validator: function (el: any): any {
-        //     // @ts-ignore
-        //     return el === this.password;
-        //   },
-        // },
+        required: [true, 'Please confirm your password'],
+        validate: {
+            validator: function (value) {
+                // @ts-ignore
+                return value === this.password; //true
+            },
+        },
     },
 });
 UsersSchema.pre('save', function (next) {
@@ -92,12 +92,12 @@ UsersSchema.pre('save', function (next) {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    if (!this.isModified('password'))
-                        return [2 /*return*/, next()];
+                    // if (!this.isModified('password')) return next();
                     // @ts-ignore
                     _a = this;
                     return [4 /*yield*/, bcryptjs_1.default.hash(this.password, 12)];
                 case 1:
+                    // if (!this.isModified('password')) return next();
                     // @ts-ignore
                     _a.password = _b.sent();
                     // @ts-ignore

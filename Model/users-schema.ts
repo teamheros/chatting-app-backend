@@ -4,20 +4,20 @@ import bcrypt from 'bcryptjs';
 const UsersSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    // required: true,
+    required: true,
   },
   lastName: {
     type: String,
-    // required: true,
+    required: true,
   },
   email: {
     type: String,
-    // required: true,
-    // unique: true,
+    required: true,
+    unique: true,
   },
   phoneNumber: {
     type: String,
-    // required: true,
+    required: true,
   },
   gender: {
     type: String,
@@ -28,27 +28,27 @@ const UsersSchema = new mongoose.Schema({
   bioData: {
     type: String,
   },
-  password: {
+  password: { //1234
     type: String,
-    // required: true,
+    required: true,
   },
   role: {
     type: String,
   },
-  passwordConfirm: {
+  passwordConfirm: {//1234
     type: String,
-    // required: [true, 'Please confirm your password'],
-    // validate: {
-    //   validator: function (el: any): any {
-    //     // @ts-ignore
-    //     return el === this.password;
-    //   },
-    // },
+    required: [true, 'Please confirm your password'],
+    validate: {
+      validator: function (value: any): any {
+        // @ts-ignore
+        return value === this.password;//true
+      },
+    },
   },
-});
+});         
 
 UsersSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  // if (!this.isModified('password')) return next();
   // @ts-ignore
   this.password = await bcrypt.hash(this.password, 12);
   // @ts-ignore
@@ -56,8 +56,7 @@ UsersSchema.pre('save', async function (next) {
   next();
 });
 
-
-UsersSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
+UsersSchema.methods.correctPassword = async function (candidatePassword, userPassword) { 
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 

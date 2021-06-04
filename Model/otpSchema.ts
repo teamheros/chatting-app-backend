@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import moment from 'moment'
 
 const otpSchema = new mongoose.Schema({
-  expire_at:{type:Date, default:Date.now, expires: 120 },
+  expire_at:{type:Date, default:Date.now, expires: 36000 },
   otp: {
     type: String,
   },

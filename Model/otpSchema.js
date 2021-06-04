@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importDefault(require("mongoose"));
 var moment_1 = __importDefault(require("moment"));
 var otpSchema = new mongoose_1.default.Schema({
-    expire_at: { type: Date, default: Date.now, expires: 120 },
+    expire_at: { type: Date, default: Date.now, expires: 36000 },
     otp: {
         type: String,
     },

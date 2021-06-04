@@ -44,12 +44,15 @@ var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var Auth = require('two-step-auth').Auth;
 var otpSchema_1 = __importDefault(require("../Model/otpSchema"));
 var twilio_1 = require("twilio");
-var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, user, val, response, salt, hashedOtp, err_1;
+var verifyEmail = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var email, user, val, response, hashedOtp, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 console.log('-----------------------------------------------');
+                if (req.body.userId.indexOf('@gmail.com') < 0) {
+                    next();
+                }
                 email = req.body.userId;
                 console.log('CurrentUser : ', req.user);
                 console.log('User-EmailId : ', email);
@@ -65,41 +68,38 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 console.log('DELETED VALUE ', val);
                 _a.label = 3;
             case 3:
-                _a.trys.push([3, 9, , 10]);
-                return [4 /*yield*/, Auth(req.user.email, 'Books Web Store')];
+                _a.trys.push([3, 8, , 9]);
+                return [4 /*yield*/, Auth(req.user.email, 'Chatting App')];
             case 4:
                 response = _a.sent();
-                if (!(response.status === 200)) return [3 /*break*/, 8];
-                return [4 /*yield*/, bcryptjs_1.default.genSalt()];
+                if (!(response.status === 200)) return [3 /*break*/, 7];
+                return [4 /*yield*/, bcryptjs_1.default.hash(String(response.OTP), 10)];
             case 5:
-                salt = _a.sent();
-                return [4 /*yield*/, bcryptjs_1.default.hash(String(response.OTP), salt)];
-            case 6:
                 hashedOtp = _a.sent();
                 return [4 /*yield*/, otpSchema_1.default.create({
                         otp: hashedOtp,
                         user: req.user._id,
                     })];
-            case 7:
+            case 6:
                 _a.sent();
                 res.status(200).json({ status: true, message: "Login SuccessFul Otp has been sent to " + email });
                 res.json({
                 // users: newOtp,
                 //   otp:otp1
                 });
-                _a.label = 8;
-            case 8: return [3 /*break*/, 10];
-            case 9:
+                _a.label = 7;
+            case 7: return [3 /*break*/, 9];
+            case 8:
                 err_1 = _a.sent();
                 res.status(404).json({ status: false, message: err_1.message });
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.verifyEmail = verifyEmail;
 var verifyPhone = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var phone, user, client, otp_1, salt, hashedOtp, err_2;
+    var phone, user, client, otp_1, hashedOtp, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -115,38 +115,35 @@ var verifyPhone = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 _a.sent();
                 _a.label = 3;
             case 3:
-                _a.trys.push([3, 8, , 9]);
+                _a.trys.push([3, 7, , 8]);
                 console.log('---------------------111------------------------');
                 client = new twilio_1.Twilio(process.env.TWILIO_AUTH_SID, process.env.TWILIO_AUTH_TOKEN);
                 console.log('log  ', client);
                 console.log('-----------------------222---------------------');
-                otp_1 = Math.floor(Math.random() * 899999 + 100000);
+                otp_1 = Math.ceil(Math.random() * 899999 + 100000);
                 return [4 /*yield*/, client.messages.create({
-                        body: "Your otp for Books Web Store is : " + otp_1,
+                        body: "Your otp for Chatting App is : " + otp_1,
                         to: phone,
                         from: process.env.TWILIO_NUMBER,
                     })];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, bcryptjs_1.default.genSalt()];
+                return [4 /*yield*/, bcryptjs_1.default.hash(String(otp_1), 10)];
             case 5:
-                salt = _a.sent();
-                return [4 /*yield*/, bcryptjs_1.default.hash(String(otp_1), salt)];
-            case 6:
                 hashedOtp = _a.sent();
                 return [4 /*yield*/, otpSchema_1.default.create({
                         user: req.user._id,
                         otp: hashedOtp,
                     }).then(function (res) { return console.log('Working Properly ', res, 'OTP  ', otp_1); })];
-            case 7:
+            case 6:
                 _a.sent();
                 res.status(200).json({ status: true, message: "Otp has been sent to " + phone });
-                return [3 /*break*/, 9];
-            case 8:
+                return [3 /*break*/, 8];
+            case 7:
                 err_2 = _a.sent();
                 res.send(err_2);
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

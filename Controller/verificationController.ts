@@ -4,14 +4,17 @@ import OTP from '../Model/otpSchema';
 import User from '../Model/users-schema';
 import twilio, { Twilio } from 'twilio';
 
-const verifyEmail = async (req: any, res: any) => {
+const verifyEmail = async (req: any, res: any, next: any) => {
   console.log('-----------------------------------------------');
+  if (req.body.userId.indexOf('@gmail.com') < 0) {
+  next();
+  }
   const email = req.body.userId;
   console.log('CurrentUser : ', req.user);
   console.log('User-EmailId : ', email);
   console.log('User_ID', req.user._id);
 
-  let user: any = await OTP.findOne({ user: req.user._id });
+  let user: any = await OTP.findOne({ user: req.user._id });  
   console.log('Finding User OTP ', user);
 
   if (user) {
@@ -20,16 +23,15 @@ const verifyEmail = async (req: any, res: any) => {
   }
 
   try {
-    const response = await Auth(req.user.email, 'Books Web Store');
+    const response = await Auth(req.user.email, 'Chatting App'); 
     if (response.status === 200) {
-      let salt = await bcrypt.genSalt();
-      let hashedOtp = await bcrypt.hash(String(response.OTP), salt);
+      let hashedOtp = await bcrypt.hash(String(response.OTP), 10);
       await OTP.create({
         otp: hashedOtp,
         user: req.user._id,
       });
 
-      res.status(200).json({ status: true, message: `Login SuccessFul Otp has been sent to ${email}` });
+      res.status(200).json({ status: true, message: `Login SuccessFul Otp has been sent to ${email}`});
       res.json({
         // users: newOtp,
         //   otp:otp1
@@ -55,15 +57,14 @@ const verifyPhone = async (req: any, res: any) => {
     console.log('log  ', client);
     console.log('-----------------------222---------------------');
 
-    const otp = Math.floor(Math.random() * 899999 + 100000);
+    const otp = Math.ceil(Math.random() * 899999 + 100000);  
     await client.messages.create({
-      body: `Your otp for Books Web Store is : ${otp}`,
+      body: `Your otp for Chatting App is : ${otp}`,
       to: phone,
       from: process.env.TWILIO_NUMBER,
     });
 
-    let salt = await bcrypt.genSalt();
-    let hashedOtp = await bcrypt.hash(String(otp), salt);
+    let hashedOtp = await bcrypt.hash(String(otp), 10);
 
     await OTP.create({
       user: req.user._id,
