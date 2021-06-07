@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import Otp from '../Model/otpSchema';
 import { verifyEmail, verifyPhone } from './verificationController';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
 import twilio, { Twilio } from 'twilio';
 import multer from 'multer';
 import path from 'path';
@@ -27,7 +28,7 @@ let storage = multer.diskStorage({
 
 //is defined as statics so that the methods or properties can be accesible without creating an instance
 //single function to just take the one file as input
-const uploadPost = multer({ storage: storage }).single('profileImage');
+// const uploadPost = multer({ storage: storage }).single('profileImage');
 
 // const multerStorage = multer.diskStorage({
 //   destination: function (req, file, cb) {
@@ -50,16 +51,31 @@ const uploadPost = multer({ storage: storage }).single('profileImage');
 //   }
 // };
 
-// const upload = multer({
-//    storage: multerStorage
-//   //  fileFilter: multerFilter
-// })
+const upload = multer({
+   storage: storage
+  //  fileFilter: multerFilter
+})
 
-// const uploadPhotos = upload.single('photo')
+const uploadPhotos = upload.single('profileImage')
 
 const getAll = async (req: any, res: any) => {
   try {
-    const newUser = await User.find({});
+    const users = await User.find({}).select("userName");
+    res.send(users);
+
+    // @ts-ignore
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err,
+    });
+    console.log(err);
+  }
+};
+const getByUserName = async (req: any, res: any) => {
+  try {
+    const {userName}=req.params
+    const newUser = await User.findOne({userName});
     res.json({ users: newUser });
 
     // @ts-ignore
@@ -73,16 +89,17 @@ const getAll = async (req: any, res: any) => {
 };
 
 const signup = async (req: any, res: any) => {
+
   try {
     const val = req.body;
-    // console.log('File NAme ---- > ', req.body);
-    // console.log('File NAme ---- > ', req.file);
 
-    // res.status(200).json({
-    //       status: 'SuccessFul',
-    //     });
-
-    const newUser = await User.create({ ...req.body, profileImage: POSTS_PATH + '/' + req.file.name });
+    //  let image=fs.readFileSync(req.body.profileImage)
+    //  let imagePath=path.join(__dirname,"../uploads/" )
+    //  let imageName=Date.now() + ".jpg"
+    //  fs.writeFileSync(imagePath+imageName,image)
+    const newUser = await User.create({
+      ...req.body, profileImage: POSTS_PATH + '/' + req.file.filename 
+    })
     res.json({ users: newUser });
     res.status(200).json({
       status: 'SuccessFul',
@@ -175,7 +192,7 @@ const isAuthorize = async (req: any, res: any, next: any) => {
       }
     }
   } catch (err) {
-    console.log(err);
+    console.log(err)
     res.status(400).json({
       message: 'Error in Authorization',
     });
@@ -206,4 +223,4 @@ const otpAuth = async (req: any, res: any) => {
   }
 };
 
-export { login, signup, isAuthorize, otpAuth, uploadPost, getAll };
+export { login, signup, isAuthorize, otpAuth, uploadPhotos, getAll ,getByUserName};

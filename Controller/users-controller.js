@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAll = exports.uploadPost = exports.otpAuth = exports.isAuthorize = exports.signup = exports.login = void 0;
+exports.getByUserName = exports.getAll = exports.uploadPhotos = exports.otpAuth = exports.isAuthorize = exports.signup = exports.login = void 0;
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var users_schema_1 = __importDefault(require("../Model/users-schema"));
 var dotenv_1 = __importDefault(require("dotenv"));
@@ -73,8 +73,7 @@ var storage = multer_1.default.diskStorage({
 });
 //is defined as statics so that the methods or properties can be accesible without creating an instance
 //single function to just take the one file as input
-var uploadPost = multer_1.default({ storage: storage }).single('profileImage');
-exports.uploadPost = uploadPost;
+// const uploadPost = multer({ storage: storage }).single('profileImage');
 // const multerStorage = multer.diskStorage({
 //   destination: function (req, file, cb) {
 //     //dirname(model folder) will be the current folder we are in so we need to go to parent directory (..)second argument to go to the uploads folder
@@ -94,21 +93,22 @@ exports.uploadPost = uploadPost;
 //     cb('Not an image! Please upload only images.')
 //   }
 // };
-// const upload = multer({
-//    storage: multerStorage
-//   //  fileFilter: multerFilter
-// })
-// const uploadPhotos = upload.single('photo')
+var upload = multer_1.default({
+    storage: storage
+    //  fileFilter: multerFilter
+});
+var uploadPhotos = upload.single('profileImage');
+exports.uploadPhotos = uploadPhotos;
 var getAll = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var newUser, err_1;
+    var users, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, users_schema_1.default.find({})];
+                return [4 /*yield*/, users_schema_1.default.find({}).select("userName")];
             case 1:
-                newUser = _a.sent();
-                res.json({ users: newUser });
+                users = _a.sent();
+                res.send(users);
                 return [3 /*break*/, 3];
             case 2:
                 err_1 = _a.sent();
@@ -123,20 +123,17 @@ var getAll = function (req, res) { return __awaiter(void 0, void 0, void 0, func
     });
 }); };
 exports.getAll = getAll;
-var signup = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var val, newUser, err_2;
+var getByUserName = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userName, newUser, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                val = req.body;
-                return [4 /*yield*/, users_schema_1.default.create(__assign(__assign({}, req.body), { profileImage: POSTS_PATH + '/' + req.file.name }))];
+                userName = req.params.userName;
+                return [4 /*yield*/, users_schema_1.default.findOne({ userName: userName })];
             case 1:
                 newUser = _a.sent();
                 res.json({ users: newUser });
-                res.status(200).json({
-                    status: 'SuccessFul',
-                });
                 return [3 /*break*/, 3];
             case 2:
                 err_2 = _a.sent();
@@ -150,9 +147,37 @@ var signup = function (req, res) { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
+exports.getByUserName = getByUserName;
+var signup = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var val, newUser, err_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                val = req.body;
+                return [4 /*yield*/, users_schema_1.default.create(__assign(__assign({}, req.body), { profileImage: POSTS_PATH + '/' + req.file.filename }))];
+            case 1:
+                newUser = _a.sent();
+                res.json({ users: newUser });
+                res.status(200).json({
+                    status: 'SuccessFul',
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                err_3 = _a.sent();
+                res.status(400).json({
+                    status: 'fail',
+                    message: err_3,
+                });
+                console.log(err_3);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
 exports.signup = signup;
 var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, userId, password, user, _b, token, err_3;
+    var _a, userId, password, user, _b, token, err_4;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -195,8 +220,8 @@ var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0,
                 }
                 return [3 /*break*/, 5];
             case 4:
-                err_3 = _c.sent();
-                console.log(err_3);
+                err_4 = _c.sent();
+                console.log(err_4);
                 res.json({
                     message: 'UnSuccessFul',
                 });
@@ -211,7 +236,7 @@ exports.login = login;
 //   }
 // };
 var isAuthorize = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var token, decode, requestUser, err_4;
+    var token, decode, requestUser, err_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -249,8 +274,8 @@ var isAuthorize = function (req, res, next) { return __awaiter(void 0, void 0, v
                 _a.label = 2;
             case 2: return [3 /*break*/, 4];
             case 3:
-                err_4 = _a.sent();
-                console.log(err_4);
+                err_5 = _a.sent();
+                console.log(err_5);
                 res.status(400).json({
                     message: 'Error in Authorization',
                 });
@@ -261,7 +286,7 @@ var isAuthorize = function (req, res, next) { return __awaiter(void 0, void 0, v
 }); };
 exports.isAuthorize = isAuthorize;
 var otpAuth = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var otp, user, userCheck, err_5;
+    var otp, user, userCheck, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -288,9 +313,9 @@ var otpAuth = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 _a.label = 4;
             case 4: return [3 /*break*/, 6];
             case 5:
-                err_5 = _a.sent();
+                err_6 = _a.sent();
                 res.status(400).send('Bad Request');
-                console.log(err_5);
+                console.log(err_6);
                 return [3 /*break*/, 6];
             case 6: return [2 /*return*/];
         }

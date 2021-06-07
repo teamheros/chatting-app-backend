@@ -17,10 +17,6 @@ var startServer = function () {
     connection_to_db_1.default()
         .then(function () {
         console.log("Connected to database");
-        // app.on("error", (err: any) => {
-        // 	console.log(`Error Connecting to http://localhost:${process.env.PORT}`);
-        // 	console.log(err.message);
-        // });
         app.listen(process.env.PORT, function () {
             console.log("Server Running at http://localhost:" + process.env.PORT);
         });

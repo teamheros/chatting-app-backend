@@ -50,6 +50,11 @@ var UsersSchema = new mongoose_1.default.Schema({
         type: String,
         required: true,
     },
+    userName: {
+        type: String,
+        required: true,
+        unique: true,
+    },
     email: {
         type: String,
         required: true,
