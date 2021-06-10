@@ -50,17 +50,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAll = exports.uploadPost = exports.otpAuth = exports.isAuthorize = exports.signup = exports.login = void 0;
+exports.userSignUp = exports.uploadPhotos = exports.getByUserName = exports.getAll = exports.otpAuth = exports.isAuthorize = exports.login = void 0;
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var users_schema_1 = __importDefault(require("../Model/users-schema"));
 var dotenv_1 = __importDefault(require("dotenv"));
 var otpSchema_1 = __importDefault(require("../Model/otpSchema"));
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
-var multer_1 = __importDefault(require("multer"));
 var path_1 = __importDefault(require("path"));
-// const router = express.Router();
+var multer_1 = __importDefault(require("multer"));
 dotenv_1.default.config();
-var POSTS_PATH = path_1.default.join('/uploads/images'); //1
+var POSTS_PATH = path_1.default.join('/uploads');
 var storage = multer_1.default.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path_1.default.join(__dirname, '..', POSTS_PATH));
@@ -71,34 +70,25 @@ var storage = multer_1.default.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + ("." + extention));
     },
 });
-//is defined as statics so that the methods or properties can be accesible without creating an instance
-//single function to just take the one file as input
-var uploadPost = multer_1.default({ storage: storage }).single('profileImage');
-exports.uploadPost = uploadPost;
-// const multerStorage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     //dirname(model folder) will be the current folder we are in so we need to go to parent directory (..)second argument to go to the uploads folder
-//     //error first callback
-//     cb(null, path.join(__dirname, "..", POSTS_PATH));
-//   },
-//   filename: (req:any, file:any, cb:any) => {
-//     const ext = file.mimetype.split('/')[1]
-//     cb(null, `user-${Date.now()}.${ext}`)
-//     }
-// });
-// const multerFilter = (req:any, file:any, cb:any) => {
-//   if(file.mimetyp.startsWith('image'))
-//   {
-//     cb(null, true);
-//   }else {
-//     cb('Not an image! Please upload only images.')
-//   }
+var upload = multer_1.default({
+    storage: storage
+    //  fileFilter: multerFilter
+});
+var uploadPhotos = upload.single('profileImage');
+exports.uploadPhotos = uploadPhotos;
+// const fileUpload: any = async (req: any, res: any) => {
+//   console.log('Req.body ', req.body);
+//   const form = new formidable.IncomingForm();
+//   form.parse(req, function (err: any, fields: any, files: any) {
+//     var oldPath = files.profileImage.path;
+//     var rawData = fs.readFileSync(oldPath);
+//     fs.writeFile(newPath, rawData, function (err) {
+//       if (err) console.log(err);
+//       return res.send('Successfully uploaded');
+//     });
+//     // next();
+//   });
 // };
-// const upload = multer({
-//    storage: multerStorage
-//   //  fileFilter: multerFilter
-// })
-// const uploadPhotos = upload.single('photo')
 var getAll = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var newUser, err_1;
     return __generator(this, function (_a) {
@@ -123,21 +113,17 @@ var getAll = function (req, res) { return __awaiter(void 0, void 0, void 0, func
     });
 }); };
 exports.getAll = getAll;
-var signup = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var val, newUser, err_2;
+var getByUserName = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userName, newUser, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                val = req.body;
-                console.log('File NAme ---- > ', req.body);
-                return [4 /*yield*/, users_schema_1.default.create(__assign(__assign({}, req.body), { profileImage: POSTS_PATH + '/' + req.file.name }))];
+                userName = req.params.userName;
+                return [4 /*yield*/, users_schema_1.default.find({ userName: userName })];
             case 1:
                 newUser = _a.sent();
                 res.json({ users: newUser });
-                res.status(200).json({
-                    status: 'SuccessFul',
-                });
                 return [3 /*break*/, 3];
             case 2:
                 err_2 = _a.sent();
@@ -151,13 +137,63 @@ var signup = function (req, res) { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
-exports.signup = signup;
+exports.getByUserName = getByUserName;
+// const POSTS_PATH = path.join('/uploads/');
+// const signup = async (req: any, res: any, file: any) => {
+//   try {
+//     console.log( req.body);
+//     // const imagePath = req.body.profileImage;
+//     // console.log('imagePath  ', imagePath);
+//     // var newPath = path.join(__dirname, '..', POSTS_PATH + Date.now() + '.jpg');
+//     // var rawData = fs.readFileSync(imagePath);
+//     // console.log('New Path', newPath);
+//     // console.log('Raw Data', rawData);
+//     // fs.writeFile(newPath, rawData, function (err) {
+//     //   if (err) console.log(err);
+//     // });
+//     // const newUser = await User.create({ ...req.body, profileImage: newPath });
+//     // const newUser = await User.create({ ...req.body, profileImage: newPath });
+//     const newUser = await User.create({ ...req.body, profileImage: POSTS_PATH + '/' + req.file.filename });
+//     res.json({ users: newUser });
+//     // @ts-ignore
+//   } catch (err) {
+//     res.status(400).json({
+//       status: 'fail',
+//       message: err,
+//     });
+//     console.log(err);
+//   }
+// };
+var userSignUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var newUser, err_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, users_schema_1.default.create(__assign(__assign({}, req.body), { profileImage: POSTS_PATH + '/' + req.file.filename }))];
+            case 1:
+                newUser = _a.sent();
+                res.json({ users: newUser });
+                return [3 /*break*/, 3];
+            case 2:
+                err_3 = _a.sent();
+                res.status(400).json({
+                    status: 'fail',
+                    message: err_3,
+                });
+                console.log(err_3);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.userSignUp = userSignUp;
 var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, userId, password, user, _b, token, err_3;
+    var _a, userId, password, user, userMessage, _b, token, err_4;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 4, , 5]);
+                _c.trys.push([0, 5, , 6]);
                 _a = req.body, userId = _a.userId, password = _a.password;
                 console.log('userId : ', userId);
                 if (!userId || !password) {
@@ -169,14 +205,17 @@ var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0,
                 return [4 /*yield*/, users_schema_1.default.findOne({ $or: [{ email: userId }, { phoneNumber: userId }] })];
             case 1:
                 user = _c.sent();
-                console.log('user  ', user);
-                _b = !user;
-                if (_b) return [3 /*break*/, 3];
-                return [4 /*yield*/, user.correctPassword(password, user.password)];
+                return [4 /*yield*/, users_schema_1.default.findOne({ $or: [{ email: userId }, { phoneNumber: userId }] }).populate('chatDetails')];
             case 2:
-                _b = !(_c.sent());
-                _c.label = 3;
+                userMessage = _c.sent();
+                console.log('user --->  ', userMessage);
+                _b = !user;
+                if (_b) return [3 /*break*/, 4];
+                return [4 /*yield*/, user.correctPassword(password, user.password)];
             case 3:
+                _b = !(_c.sent());
+                _c.label = 4;
+            case 4:
                 // @ts-ignore
                 if (_b) {
                     res.send(400).json({
@@ -186,7 +225,7 @@ var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0,
                 else {
                     token = jsonwebtoken_1.default.sign({ authorization: user.email }, process.env.SECRET_KEY, { expiresIn: '1h' });
                     res.json({
-                        // users: newOtp,
+                        users: userMessage,
                         message: 'Login SuccessFul',
                         token: token,
                         //   otp:otp1
@@ -194,15 +233,15 @@ var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0,
                     req.user = user; //req.user ---> Manjunath or Gaurav
                     next();
                 }
-                return [3 /*break*/, 5];
-            case 4:
-                err_3 = _c.sent();
-                console.log(err_3);
+                return [3 /*break*/, 6];
+            case 5:
+                err_4 = _c.sent();
+                console.log(err_4);
                 res.json({
                     message: 'UnSuccessFul',
                 });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
@@ -212,21 +251,21 @@ exports.login = login;
 //   }
 // };
 var isAuthorize = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var token, decode, requestUser, err_4;
+    var token, decode, requestUser, err_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 3, , 4]);
-                console.log(req.headers);
+                console.log('header   ', req.headers);
                 if (!(req.headers && req.headers.authorization)) return [3 /*break*/, 2];
                 token = req.headers.authorization.split(' ')[1];
                 console.log('Token', token);
                 decode = jsonwebtoken_1.default.verify(token, process.env.SECRET_KEY);
                 console.log('Decode', decode);
-                return [4 /*yield*/, users_schema_1.default.findOne(decode.email)];
+                return [4 /*yield*/, users_schema_1.default.find({ email: decode.authorization })];
             case 1:
                 requestUser = _a.sent();
-                console.log('User', requestUser);
+                console.log('requestdUser', requestUser);
                 try {
                     if (!requestUser) {
                         return [2 /*return*/, res.json({ success: false, message: 'Unauthorized Access' })];
@@ -247,8 +286,8 @@ var isAuthorize = function (req, res, next) { return __awaiter(void 0, void 0, v
                 _a.label = 2;
             case 2: return [3 /*break*/, 4];
             case 3:
-                err_4 = _a.sent();
-                console.log(err_4);
+                err_5 = _a.sent();
+                console.log(err_5);
                 res.status(400).json({
                     message: 'Error in Authorization',
                 });
@@ -259,7 +298,7 @@ var isAuthorize = function (req, res, next) { return __awaiter(void 0, void 0, v
 }); };
 exports.isAuthorize = isAuthorize;
 var otpAuth = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var otp, user, userCheck, err_5;
+    var otp, user, userCheck, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -286,12 +325,51 @@ var otpAuth = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 _a.label = 4;
             case 4: return [3 /*break*/, 6];
             case 5:
-                err_5 = _a.sent();
+                err_6 = _a.sent();
                 res.status(400).send('Bad Request');
-                console.log(err_5);
+                console.log(err_6);
                 return [3 /*break*/, 6];
             case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.otpAuth = otpAuth;
+// export { login, isAuthorize, otpAuth, uploadPhotos, userSignUp };
+// const POSTS_PATH = path.join('/uploads/images'); //1
+// let storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, path.join(__dirname, '..', POSTS_PATH));
+//   },
+//   filename: function (req, file, cb) {
+//     const extention = file.mimetype.split('/')[1];
+//     console.log('Extension', extention);
+//     cb(null, file.fieldname + '-' + Date.now() + `.${extention}`);
+//   },
+// });
+// const upload = multer({
+//    storage: multerStorage
+//   //  fileFilter: multerFilter
+// })
+// const uploadPhotos = upload.single('photo')
+//is defined as statics so that the methods or properties can be accesible without creating an instance
+//single function to just take the one file as input
+// const uploadPost = multer({ storage: storage }).single('profileImage');
+// const multerStorage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     //dirname(model folder) will be the current folder we are in so we need to go to parent directory (..)second argument to go to the uploads folder
+//     //error first callback
+//     cb(null, path.join(__dirname, "..", POSTS_PATH));
+//   },
+//   filename: (req:any, file:any, cb:any) => {
+//     const ext = file.mimetype.split('/')[1]
+//     cb(null, `user-${Date.now()}.${ext}`)
+//     }
+// });
+// const multerFilter = (req:any, file:any, cb:any) => {
+//   if(file.mimetyp.startsWith('image'))
+//   {
+//     cb(null, true);
+//   }else {
+//     cb('Not an image! Please upload only images.')
+//   }
+// };

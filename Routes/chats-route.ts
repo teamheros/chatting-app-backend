@@ -5,6 +5,6 @@ const chatRouter = express.Router();
 
 chatRouter.get("/:users", getChats);
 
-chatRouter.post("/", addChat);
+chatRouter.post("/", addChat)
 
-export { chatRouter };
+export default chatRouter

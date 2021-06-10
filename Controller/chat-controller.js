@@ -35,20 +35,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addChat = exports.getChats = void 0;
+exports.getUserChats = exports.addChat = exports.getChats = void 0;
 var chatModel_1 = require("../Model/chatModel");
 var messageModel_1 = require("../Model/messageModel");
+var users_schema_1 = __importDefault(require("../Model/users-schema"));
 var getChats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var users, chat;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 users = req.params.users;
-                users = JSON.parse(users);
                 return [4 /*yield*/, chatModel_1.ChatModel.findOne({
                         users: users,
-                    }).populate("messages")];
+                    }).populate('messages')];
             case 1:
                 chat = _a.sent();
                 res.status(200).send(chat);
@@ -57,26 +60,50 @@ var getChats = function (req, res) { return __awaiter(void 0, void 0, void 0, fu
     });
 }); };
 exports.getChats = getChats;
+var getUserChats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var users, chat;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('currently Logged In User ', req.user);
+                users = req.user[0]._id;
+                console.log('User  ID ', users);
+                return [4 /*yield*/, users_schema_1.default.findOne({ _id: users }).populate('chatDetails')];
+            case 1:
+                chat = _a.sent();
+                console.log('User Chat ', chat);
+                res.status(200).send(chat);
+                return [2 /*return*/];
+        }
+    });
+}); };
+exports.getUserChats = getUserChats;
 var addChat = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, users, msg, sentBy, msgResponse, doc, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 5, , 6]);
                 _a = req.body, users = _a.users, msg = _a.msg, sentBy = _a.sentBy;
                 return [4 /*yield*/, messageModel_1.MessageModel.create({ content: msg, sentBy: sentBy })];
             case 1:
                 msgResponse = _b.sent();
-                return [4 /*yield*/, chatModel_1.ChatModel.findOneAndUpdate({ users: users }, { $push: { messages: msgResponse._id } }, { new: true, upsert: true })];
+                return [4 /*yield*/, users_schema_1.default.findOneAndUpdate({ _id: sentBy }, { $addToSet: { chatDetails: users } }, { new: true, upsert: true })];
             case 2:
+                _b.sent();
+                return [4 /*yield*/, users_schema_1.default.findOneAndUpdate({ _id: users }, { $addToSet: { chatDetails: sentBy } }, { new: true, upsert: true })];
+            case 3:
+                _b.sent();
+                return [4 /*yield*/, chatModel_1.ChatModel.findOneAndUpdate({ users: users }, { $push: { messages: msgResponse._id } }, { new: true, upsert: true })];
+            case 4:
                 doc = _b.sent();
                 res.status(201).send(doc);
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 6];
+            case 5:
                 err_1 = _b.sent();
                 console.log(err_1);
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

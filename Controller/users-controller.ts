@@ -2,60 +2,48 @@ import jwt from 'jsonwebtoken';
 import User from '../Model/users-schema';
 import dotenv from 'dotenv';
 import Otp from '../Model/otpSchema';
-import { verifyEmail, verifyPhone } from './verificationController';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import formidable from 'formidable';
 import twilio, { Twilio } from 'twilio';
-import multer from 'multer';
 import path from 'path';
-import { Router } from 'express';
-import express from 'express';
-// const router = express.Router();
+import multer from 'multer'
 dotenv.config();
 
-const POSTS_PATH = path.join('/uploads/images'); //1
+
+const POSTS_PATH = path.join('/uploads');
 
 let storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, '..', POSTS_PATH));
   },
   filename: function (req, file, cb) {
-    const extention = file.mimetype.split('/')[1];
-    console.log('Extension', extention);
-    cb(null, file.fieldname + '-' + Date.now() + `.${extention}`);
-  },
-});
+      const extention = file.mimetype.split('/')[1];
+      console.log('Extension', extention);
+      cb(null, file.fieldname + '-' + Date.now() + `.${extention}`);
+    },
+  });
+  const upload = multer({
+       storage: storage
+      //  fileFilter: multerFilter
+    })
+    
+    const uploadPhotos = upload.single('profileImage')
+// const fileUpload: any = async (req: any, res: any) => {
 
-//is defined as statics so that the methods or properties can be accesible without creating an instance
-//single function to just take the one file as input
-const uploadPost = multer({ storage: storage }).single('profileImage');
+//   console.log('Req.body ', req.body);
+//   const form = new formidable.IncomingForm();
+//   form.parse(req, function (err: any, fields: any, files: any) {
+//     var oldPath = files.profileImage.path;
+//     var rawData = fs.readFileSync(oldPath);
 
-// const multerStorage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     //dirname(model folder) will be the current folder we are in so we need to go to parent directory (..)second argument to go to the uploads folder
-//     //error first callback
-//     cb(null, path.join(__dirname, "..", POSTS_PATH));
-//   },
-//   filename: (req:any, file:any, cb:any) => {
-//     const ext = file.mimetype.split('/')[1]
-//     cb(null, `user-${Date.now()}.${ext}`)
-//     }
-// });
-
-// const multerFilter = (req:any, file:any, cb:any) => {
-//   if(file.mimetyp.startsWith('image'))
-//   {
-//     cb(null, true);
-//   }else {
-//     cb('Not an image! Please upload only images.')
-//   }
+//     fs.writeFile(newPath, rawData, function (err) {
+//       if (err) console.log(err);
+//       return res.send('Successfully uploaded');
+//     });
+//     // next();
+//   });
 // };
-
-// const upload = multer({
-//    storage: multerStorage
-//   //  fileFilter: multerFilter
-// })
-
-// const uploadPhotos = upload.single('photo')
 
 const getAll = async (req: any, res: any) => {
   try {
@@ -72,21 +60,12 @@ const getAll = async (req: any, res: any) => {
   }
 };
 
-const signup = async (req: any, res: any) => {
+const getByUserName = async (req: any, res: any) => {
   try {
-    const val = req.body;
-    console.log('File NAme ---- > ', req.body);
-    // console.log('File NAme ---- > ', req.file);
-
-    // res.status(200).json({
-    //       status: 'SuccessFul',
-    //     });
-
-    const newUser = await User.create({ ...req.body, profileImage: POSTS_PATH + '/' + req.file.name });
+    const { userName } = req.params;
+    const newUser = await User.find({ userName });
     res.json({ users: newUser });
-    res.status(200).json({
-      status: 'SuccessFul',
-    });
+
     // @ts-ignore
   } catch (err) {
     res.status(400).json({
@@ -96,6 +75,51 @@ const signup = async (req: any, res: any) => {
     console.log(err);
   }
 };
+// const POSTS_PATH = path.join('/uploads/');
+
+// const signup = async (req: any, res: any, file: any) => {
+//   try {
+//     console.log( req.body);
+//     // const imagePath = req.body.profileImage;
+//     // console.log('imagePath  ', imagePath);
+//     // var newPath = path.join(__dirname, '..', POSTS_PATH + Date.now() + '.jpg');
+//     // var rawData = fs.readFileSync(imagePath);
+//     // console.log('New Path', newPath);
+//     // console.log('Raw Data', rawData);
+//     // fs.writeFile(newPath, rawData, function (err) {
+//     //   if (err) console.log(err);
+//     // });
+    
+//     // const newUser = await User.create({ ...req.body, profileImage: newPath });
+//     // const newUser = await User.create({ ...req.body, profileImage: newPath });
+//     const newUser = await User.create({ ...req.body, profileImage: POSTS_PATH + '/' + req.file.filename });
+
+//     res.json({ users: newUser });
+//     // @ts-ignore
+//   } catch (err) {
+//     res.status(400).json({
+//       status: 'fail',
+//       message: err,
+//     });
+//     console.log(err);
+//   }
+// };
+
+
+const userSignUp = async(req:any, res:any) => {
+  try{
+    const newUser = await User.create({
+      ...req.body, profileImage: POSTS_PATH + '/' + req.file.filename 
+    })
+    res.json({ users: newUser });
+  }catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err,
+    });
+    console.log(err);
+  }
+}
 
 const login = async (req: any, res: any, next: any) => {
   try {
@@ -109,7 +133,8 @@ const login = async (req: any, res: any, next: any) => {
       });
     }
     const user: any = await User.findOne({ $or: [{ email: userId }, { phoneNumber: userId }] });
-    console.log('user  ', user);
+    const userMessage: any = await User.findOne({ $or: [{ email: userId }, { phoneNumber: userId }] }).populate('chatDetails');
+    console.log('user --->  ', userMessage)
 
     // @ts-ignore
     if (!user || !(await user.correctPassword(password, user.password))) {
@@ -120,7 +145,7 @@ const login = async (req: any, res: any, next: any) => {
       // //@ts-ignore
       let token = jwt.sign({ authorization: user.email }, process.env.SECRET_KEY!, { expiresIn: '1h' });
       res.json({
-        // users: newOtp,
+        users: userMessage,
         message: 'Login SuccessFul',
         token: token,
         //   otp:otp1
@@ -144,15 +169,15 @@ const login = async (req: any, res: any, next: any) => {
 
 const isAuthorize = async (req: any, res: any, next: any) => {
   try {
-    console.log(req.headers);
+    console.log('header   ', req.headers);
     if (req.headers && req.headers.authorization) {
       const token = req.headers.authorization.split(' ')[1];
-      console.log('Token', token);
+      console.log('Token', token)
       const decode = jwt.verify(token, process.env.SECRET_KEY!);
       console.log('Decode', decode);
       // @ts-ignore
-      const requestUser = await User.findOne(decode.email);
-      console.log('User', requestUser);
+      const requestUser = await User.find({email:decode.authorization});
+      console.log('requestdUser', requestUser);
 
       try {
         if (!requestUser) {
@@ -202,4 +227,51 @@ const otpAuth = async (req: any, res: any) => {
   }
 };
 
-export { login, signup, isAuthorize, otpAuth, uploadPost, getAll };
+export { login, isAuthorize, otpAuth, getAll, getByUserName, uploadPhotos, userSignUp };
+// export { login, isAuthorize, otpAuth, uploadPhotos, userSignUp };
+
+
+// const POSTS_PATH = path.join('/uploads/images'); //1
+
+// let storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, path.join(__dirname, '..', POSTS_PATH));
+//   },
+//   filename: function (req, file, cb) {
+  //     const extention = file.mimetype.split('/')[1];
+  //     console.log('Extension', extention);
+  //     cb(null, file.fieldname + '-' + Date.now() + `.${extention}`);
+  //   },
+  // });
+  // const upload = multer({
+    //    storage: multerStorage
+    //   //  fileFilter: multerFilter
+    // })
+    
+    // const uploadPhotos = upload.single('photo')
+
+//is defined as statics so that the methods or properties can be accesible without creating an instance
+//single function to just take the one file as input
+// const uploadPost = multer({ storage: storage }).single('profileImage');
+
+// const multerStorage = multer.diskStorage({
+  //   destination: function (req, file, cb) {
+    //     //dirname(model folder) will be the current folder we are in so we need to go to parent directory (..)second argument to go to the uploads folder
+    //     //error first callback
+    //     cb(null, path.join(__dirname, "..", POSTS_PATH));
+    //   },
+    //   filename: (req:any, file:any, cb:any) => {
+      //     const ext = file.mimetype.split('/')[1]
+      //     cb(null, `user-${Date.now()}.${ext}`)
+      //     }
+      // });
+      
+      // const multerFilter = (req:any, file:any, cb:any) => {
+//   if(file.mimetyp.startsWith('image'))
+//   {
+  //     cb(null, true);
+//   }else {
+  //     cb('Not an image! Please upload only images.')
+//   }
+// };
+

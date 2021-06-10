@@ -15,6 +15,11 @@ const UsersSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  userName:{
+    type: String,
+    require: true,
+    unique:true
+  },
   phoneNumber: {
     type: String,
     required: true,
@@ -23,29 +28,34 @@ const UsersSchema = new mongoose.Schema({
     type: String,
   },
   profileImage: {
-    type: String
+    type: String,
   },
   bioData: {
     type: String,
   },
-  password: { //1234
+  password: {
     type: String,
     required: true,
   },
   role: {
     type: String,
   },
-  passwordConfirm: {//1234
+  chatDetails: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref:"users",
+    required: true,
+  },
+  passwordConfirm: {
     type: String,
     required: [true, 'Please confirm your password'],
     validate: {
       validator: function (value: any): any {
         // @ts-ignore
-        return value === this.password;//true
+        return value === this.password; //true
       },
     },
   },
-});         
+});
 
 UsersSchema.pre('save', async function (next) {
   // if (!this.isModified('password')) return next();
@@ -56,10 +66,10 @@ UsersSchema.pre('save', async function (next) {
   next();
 });
 
-UsersSchema.methods.correctPassword = async function (candidatePassword, userPassword) { 
+UsersSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 const userModel = mongoose.model('users', UsersSchema);
 
-export default userModel;
+export default userModel

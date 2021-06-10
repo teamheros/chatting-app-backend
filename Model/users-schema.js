@@ -55,6 +55,11 @@ var UsersSchema = new mongoose_1.default.Schema({
         required: true,
         unique: true,
     },
+    userName: {
+        type: String,
+        require: true,
+        unique: true
+    },
     phoneNumber: {
         type: String,
         required: true,
@@ -63,7 +68,7 @@ var UsersSchema = new mongoose_1.default.Schema({
         type: String,
     },
     profileImage: {
-        type: String
+        type: String,
     },
     bioData: {
         type: String,
@@ -74,6 +79,11 @@ var UsersSchema = new mongoose_1.default.Schema({
     },
     role: {
         type: String,
+    },
+    chatDetails: {
+        type: [mongoose_1.default.Schema.Types.ObjectId],
+        ref: "users",
+        required: true,
     },
     passwordConfirm: {
         type: String,
